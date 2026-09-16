@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Entensylvania Treasury — Monetary Authority</title>
+<style>
+:root{
+  --navy:#17243a; --navy2:#243553; --gold:#c8a44d; --cream:#f4efe2;
+  --paper:#fffdf7; --ink:#20242b; --muted:#687385; --line:#d8d1bf;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--cream);color:var(--ink);font-family:Georgia,"Times New Roman",serif}
+header{background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;border-bottom:6px solid var(--gold)}
+.top{max-width:1120px;margin:auto;padding:30px 18px;display:flex;align-items:center;gap:18px}
+.duck{font-size:55px;filter:drop-shadow(0 2px 2px #0005)}
+h1{margin:0;font-size:clamp(1.8rem,5vw,2.8rem)}
+.subtitle{font:15px Arial,sans-serif;opacity:.88;margin-top:5px}
+nav{background:#111b2c}
+nav .navin{max-width:1120px;margin:auto;padding:10px 18px;font:13px Arial,sans-serif;color:#dce3ef;letter-spacing:.05em}
+main{max-width:1120px;margin:25px auto;padding:0 18px 50px}
+.hero{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:25px;box-shadow:0 5px 20px #0000000b}
+.hero h2{margin:0 0 8px;color:var(--navy);font-size:1.55rem}
+.hero p{margin:7px 0;color:#4f5967;font-family:Arial,sans-serif}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:17px;margin-top:17px}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:21px;box-shadow:0 5px 20px #0000000b}
+.card h2{margin:0 0 16px;color:var(--navy);font-size:1.25rem}
+.big{font-size:2rem;font-weight:bold;color:var(--navy);margin:5px 0}
+.label{font:12px Arial,sans-serif;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:bold}
+.small{font:13px Arial,sans-serif;color:var(--muted)}
+input{width:100%;padding:11px;border:1px solid #bfc2c5;border-radius:8px;font-size:1rem;margin:6px 0 10px}
+button{background:var(--navy);color:#fff;border:0;border-radius:8px;padding:10px 14px;font-weight:bold;cursor:pointer}
+button:hover{opacity:.9}
+table{width:100%;border-collapse:collapse;font:14px Arial,sans-serif}
+th,td{padding:11px 8px;border-bottom:1px solid #e5e1d8;text-align:right}
+th:first-child,td:first-child{text-align:left}
+.total td{font-weight:bold;border-top:2px solid var(--gold)}
+.badge{display:inline-block;background:#eee5c9;color:#6a5319;border:1px solid #d9c584;padding:5px 9px;border-radius:999px;font:12px Arial,sans-serif;font-weight:bold}
+.notice{margin-top:17px;background:#fff9e6;border:1px solid #dfcf98;border-radius:10px;padding:14px;font:13px Arial,sans-serif}
+footer{text-align:center;padding:25px;color:#737b87;font:12px Arial,sans-serif}
+@media(max-width:600px){.top{align-items:flex-start}.duck{font-size:42px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <div class="duck">🦆</div>
+    <div>
+      <h1>Kingdom of Entensylvania</h1>
+      <div class="subtitle">Main Treasury • Monetary Authority of Entenberg</div>
+    </div>
+  </div>
+  <nav><div class="navin">TREASURY • GOLD RESERVE • ENTENMARK • PUBLIC ACCOUNTING</div></nav>
+</header>
+
+<main>
+<section class="hero">
+  <span class="badge">ENTENMARK STANDARD</span>
+  <h2>Gold Reserve & Currency Dashboard</h2>
+  <p>The Entenmark is defined by the Treasury as <strong>1 ENM = 1/4 Goldback</strong>.</p>
+  <p>Use the controls below to record reserve holdings and calculate their current reference value.</p>
+</section>
+
+<div class="grid">
+<section class="card">
+  <h2>Goldback Market Rate</h2>
+  <div class="label">1 Goldback in USD</div>
+  <input id="gbPrice" type="number" min="0" step="0.0001" value="8.73">
+  <div class="small">Enter the current official Goldback exchange rate. The calculator does not scrape Goldback automatically.</div>
+  <br>
+  <div class="label">Rate per 1 ENM</div>
+  <div class="big" id="enmRate">$2.18</div>
+  <div class="small">1 ENM = 1/4 Goldback</div>
+</section>
+
+<section class="card">
+  <h2>Treasury Reserve</h2>
+  <div class="label">1 Goldbacks</div>
+  <input id="whole" type="number" min="0" step="1" value="3">
+  <div class="label">1/2 Goldbacks</div>
+  <input id="half" type="number" min="0" step="1" value="7">
+  <div class="label">1/4 Goldbacks</div>
+  <input id="quarter" type="number" min="0" step="1" value="16">
+</section>
+
+<section class="card">
+  <h2>Reserve Summary</h2>
+  <div class="label">Total Goldback Equivalent</div>
+  <div class="big" id="totalGB">10.50 GB</div>
+  <div class="label">Maximum 100%-backed ENM</div>
+  <div class="big" id="totalENM">42.00 ENM</div>
+  <div class="label">Reference USD Value</div>
+  <div class="big" id="totalUSD">$91.67</div>
+</section>
+</div>
+
+<section class="card" style="margin-top:17px">
+<h2>Reserve Accounting</h2>
+<table>
+<thead><tr><th>Denomination</th><th>Quantity</th><th>GB Equivalent</th><th>ENM Backing</th><th>USD Reference</th></tr></thead>
+<tbody id="rows"></tbody>
+</table>
+</section>
+
+<div class="grid">
+<section class="card">
+<h2>Currency Converter</h2>
+<div class="label">Entenmarks → USD</div>
+<input id="enmInput" type="number" min="0" step=".01" value="1">
+<div class="big" id="enmToUSD">$2.18</div>
+<div class="label">USD → Entenmarks</div>
+<input id="usdInput" type="number" min="0" step=".01" value="100">
+<div class="big" id="usdToENM">45.77 ENM</div>
+</section>
+
+<section class="card">
+<h2>Goldback Converter</h2>
+<div class="label">Goldbacks → Entenmarks</div>
+<input id="gbInput" type="number" min="0" step=".25" value="1">
+<div class="big" id="gbToENM">4.00 ENM</div>
+<div class="label">Goldbacks → USD</div>
+<div class="big" id="gbToUSD">$8.73</div>
+</section>
+</div>
+
+<div class="notice">
+<strong>Accounting note:</strong> This dashboard treats 1 ENM as 1/4 Goldback. A 100% reserve-backing calculation therefore equals the total Goldback-equivalent reserve multiplied by four. USD figures are reference values based on the rate entered above.
+</div>
+</main>
+
+<footer>
+Kingdom of Entensylvania • Main Treasury of Entenberg<br>
+Entensylvania currency accounting tool • Not U.S. currency
+</footer>
+
+<script>
+const $=id=>document.getElementById(id);
+const n=id=>Math.max(0,parseFloat($(id).value)||0);
+const usd=x=>x.toLocaleString('en-US',{style:'currency',currency:'USD',minimumFractionDigits:2,maximumFractionDigits:2});
+
+function update(){
+ const price=n('gbPrice'), whole=n('whole'), half=n('half'), quarter=n('quarter');
+ const gb=whole+half*.5+quarter*.25, enm=gb*4, value=gb*price, enmPrice=price/4;
+
+ $('enmRate').textContent=usd(enmPrice);
+ $('totalGB').textContent=gb.toFixed(2)+' GB';
+ $('totalENM').textContent=enm.toFixed(2)+' ENM';
+ $('totalUSD').textContent=usd(value);
+
+ const data=[
+  ['1 Goldback',whole,whole],
+  ['1/2 Goldback',half,half*.5],
+  ['1/4 Goldback',quarter,quarter*.25]
+ ];
+ $('rows').innerHTML=data.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2].toFixed(2)}</td><td>${(r[2]*4).toFixed(2)}</td><td>${usd(r[2]*price)}</td></tr>`).join('')+
+ `<tr class="total"><td>TOTAL</td><td></td><td>${gb.toFixed(2)}</td><td>${enm.toFixed(2)}</td><td>${usd(value)}</td></tr>`;
+
+ const ei=n('enmInput'), ui=n('usdInput'), gi=n('gbInput');
+ $('enmToUSD').textContent=usd(ei*enmPrice);
+ $('usdToENM').textContent=(enmPrice?ui/enmPrice:0).toFixed(2)+' ENM';
+ $('gbToENM').textContent=(gi*4).toFixed(2)+' ENM';
+ $('gbToUSD').textContent=usd(gi*price);
+}
+document.querySelectorAll('input').forEach(x=>x.addEventListener('input',update));
+update();
+</script>
+</body>
+</html>
