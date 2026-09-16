@@ -1,0 +1,97 @@
+name: Update Goldback Rate
+
+on:
+  schedule:
+    # 10:30 AM Mountain Standard Time is 17:30 UTC.
+    # Goldback says its official rate updates at 10 AM MST.
+    - cron: "30 17 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-rate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Fetch current Goldback reference rate
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, urllib.request
+          from datetime import datetime, timezone
+
+          # StackerScan exposes a public Goldback premium multiple.
+          # Its homepage currently exposes the live gold spot value as well.
+          # We use its documented public endpoints here rather than relying
+          # on browser-side cross-origin requests.
+          rate_url = "https://www.stackerscan.com/api/premiums/goldback-rate"
+          spot_url = "https://www.stackerscan.com/api/premiums/metal-prices?base=USD&unit=troy_oz&metals=xau"
+
+          def get(url):
+              req = urllib.request.Request(url, headers={"User-Agent":"Entensylvania-Treasury/1.0"})
+              with urllib.request.urlopen(req, timeout=20) as r:
+                  return json.load(r)
+
+          rate = get(rate_url)
+          spot = get(spot_url)
+
+          multiple = float(rate["premiumMultiple"])
+
+          def find_xau(obj):
+              if isinstance(obj, dict):
+                  for key in ("xau", "XAU"):
+                      if isinstance(obj.get(key), (int,float)):
+                          return float(obj[key])
+                  for key in ("gold", "Gold"):
+                      if isinstance(obj.get(key), dict):
+                          x = find_xau(obj[key])
+                          if x is not None:
+                              return x
+                  for key in ("price","spotPrice","spot","value"):
+                      if isinstance(obj.get(key), (int,float)):
+                          return float(obj[key])
+                  for value in obj.values():
+                      x = find_xau(value)
+                      if x is not None:
+                          return x
+              elif isinstance(obj, list):
+                  for item in obj:
+                      x = find_xau(item)
+                      if x is not None:
+                          return x
+              return None
+
+          gold_spot = find_xau(spot)
+          if gold_spot is None:
+              raise SystemExit("Could not find XAU spot price in API response")
+
+          # One Goldback contains 1/1000 troy oz; StackerScan's premium
+          # multiple is applied to spot to obtain the reference value.
+          goldback_usd = round((gold_spot / 1000.0) * multiple, 2)
+
+          payload = {
+              "goldback_usd": goldback_usd,
+              "rate_date": rate.get("rateDate", datetime.now(timezone.utc).date().isoformat()),
+              "source": "StackerScan public API",
+              "updated_utc": datetime.now(timezone.utc).isoformat()
+          }
+
+          with open("rate.json", "w", encoding="utf-8") as f:
+              json.dump(payload, f, indent=2)
+              f.write("\n")
+
+          print(json.dumps(payload, indent=2))
+          PY
+
+      - name: Commit updated rate
+        run: |
+          git config user.name "Entensylvania Treasury Bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add rate.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Update daily Goldback rate"
+          git push
